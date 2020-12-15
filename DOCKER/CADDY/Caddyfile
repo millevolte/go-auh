@@ -1,0 +1,9 @@
+dev.prada.ch {
+    root * /srv/dev.prada.ch
+    file_server
+    tls /srv/certs/dev.prada.ch.cert.pem /srv/certs/dev.prada.ch.key.pem
+    route /api/* {
+        uri strip_prefix /api
+        reverse_proxy host.docker.internal:9000
+    }
+}

@@ -20,7 +20,8 @@ import (
 //CORS (Cross-Origin Resource Sharing)
 func CORSMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		c.Writer.Header().Set("Access-Control-Allow-Origin", "http://localhost")
+		// load origins from config or DB
+		c.Writer.Header().Set("Access-Control-Allow-Origin", "http://dev.prada.ch")
 		c.Writer.Header().Set("Access-Control-Max-Age", "86400")
 		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE, UPDATE")
 		c.Writer.Header().Set("Access-Control-Allow-Headers", "X-Requested-With, Content-Type, Origin, Authorization, Accept, Client-Security-Token, Accept-Encoding, x-access-token")
@@ -95,14 +96,7 @@ func main() {
 		//Rerfresh the token when needed to generate new access_token and refresh_token for the user
 		v1.POST("/token/refresh", auth.Refresh)
 
-		/*** START Article ***/
-		article := new(controllers.ArticleController)
-
-		v1.POST("/article", TokenAuthMiddleware(), article.Create)
-		v1.GET("/articles", TokenAuthMiddleware(), article.All)
-		v1.GET("/article/:id", TokenAuthMiddleware(), article.One)
-		v1.PUT("/article/:id", TokenAuthMiddleware(), article.Update)
-		v1.DELETE("/article/:id", TokenAuthMiddleware(), article.Delete)
+		/*** START SERVICESe ***/
 	}
 
 	r.LoadHTMLGlob("./public/html/*")
@@ -120,27 +114,12 @@ func main() {
 		c.HTML(404, "404.html", gin.H{})
 	})
 
-	fmt.Println("SSL", os.Getenv("SSL"))
 	port := os.Getenv("PORT")
 
 	if os.Getenv("ENV") == "PRODUCTION" {
 		gin.SetMode(gin.ReleaseMode)
 	}
 
-	if os.Getenv("SSL") == "TRUE" {
-
-		SSLKeys := &struct {
-			CERT string
-			KEY  string
-		}{}
-
-		//Generated using sh generate-certificate.sh
-		SSLKeys.CERT = "./cert/myCA.cer"
-		SSLKeys.KEY = "./cert/myCA.key"
-
-		r.RunTLS(":"+port, SSLKeys.CERT, SSLKeys.KEY)
-	} else {
-		r.Run(":" + port)
-	}
+	r.Run(":" + port)
 
 }
